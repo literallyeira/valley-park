@@ -1,0 +1,30 @@
+[
+    {
+        "id": 1,
+        "name": "V.P. Signature Hoodie",
+        "price": 1200,
+        "image": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1000&auto=format&fit=crop",
+        "category": "Giyim"
+    },
+    {
+        "id": 2,
+        "name": "Urban Street Sneaker",
+        "price": 1850,
+        "image": "https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=1000&auto=format&fit=crop",
+        "category": "Ayakkabı"
+    },
+    {
+        "id": 3,
+        "name": "Vintage Denim Jacket",
+        "price": 2100,
+        "image": "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?q=80&w=1000&auto=format&fit=crop",
+        "category": "Dış Giyim"
+    },
+    {
+        "id": 4,
+        "name": "Minimalist Cap",
+        "price": 450,
+        "image": "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=1000&auto=format&fit=crop",
+        "category": "Aksesuar"
+    }
+]
