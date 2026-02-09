@@ -12,6 +12,12 @@ export const addProduct = async (product: any) => {
     return data;
 };
 
+export const updateProduct = async (id: number, updates: Partial<{ name: string; price: number; image: string; category: string; description: string | null }>) => {
+    const { data, error } = await supabase.from('products').update(updates).eq('id', id).select().single();
+    if (error) console.error('Error updating product:', error);
+    return data;
+};
+
 export const deleteProduct = async (id: number) => {
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) console.error('Error deleting product:', error);

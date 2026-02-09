@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getProducts, addProduct, deleteProduct } from '../../lib/db';
+import { getProducts, addProduct, updateProduct, deleteProduct } from '../../lib/db';
 
 export async function GET() {
     const products = await getProducts();
@@ -10,6 +10,14 @@ export async function POST(request: Request) {
     const data = await request.json();
     const newProduct = await addProduct(data);
     return NextResponse.json(newProduct);
+}
+
+export async function PUT(request: Request) {
+    const data = await request.json();
+    const { id, ...updates } = data;
+    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+    const updated = await updateProduct(Number(id), updates);
+    return NextResponse.json(updated);
 }
 
 export async function DELETE(request: Request) {
