@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
+import { useToast } from '../../components/Toast';
 import Link from 'next/link';
 
 interface Product {
@@ -16,8 +17,8 @@ interface Product {
 
 export default function ProductDetailPage() {
     const { id } = useParams();
-    const router = useRouter();
     const { addToCart } = useCart();
+    const { toast } = useToast();
 
     const [product, setProduct] = useState<Product | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -40,7 +41,7 @@ export default function ProductDetailPage() {
     const handleAddToCart = () => {
         if (product) {
             addToCart(product.id);
-            alert('Sepete Eklendi');
+            toast('Sepete eklendi');
         }
     };
 
@@ -48,7 +49,7 @@ export default function ProductDetailPage() {
     if (!product) return <div className="min-h-screen bg-black flex items-center justify-center">Ürün bulunamadı.</div>;
 
     return (
-        <main className="min-h-screen bg-black pt-24 pb-20 px-6">
+        <main className="min-h-screen bg-black pt-8 pb-20 px-6">
             <div className="max-w-[1200px] mx-auto">
                 <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 uppercase text-xs font-bold tracking-widest">
                     <i className="fa-solid fa-arrow-left"></i>

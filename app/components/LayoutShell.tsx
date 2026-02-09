@@ -11,7 +11,9 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     return (
         <>
             {!isAdmin && <Header />}
-            {children}
+            <div className={!isAdmin ? 'pt-28' : ''}>
+                {children}
+            </div>
             {!isAdmin && <Footer />}
         </>
     );

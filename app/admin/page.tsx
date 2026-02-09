@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '../lib/auth';
+import { useToast } from '../components/Toast';
 import LoginModal from '../components/LoginModal';
 
 interface Product {
@@ -14,6 +15,7 @@ interface Product {
 }
 
 export default function AdminPage() {
+    const { toast } = useToast();
     const [user, setUser] = useState<User | null>(null);
     const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'categories'>('orders');
     const [products, setProducts] = useState<Product[]>([]);
@@ -70,7 +72,7 @@ export default function AdminPage() {
         if (res.ok) {
             setNewProduct({ name: '', price: '', image: '', category: '', description: '' });
             fetchData();
-            alert('Ürün eklendi');
+            toast('Ürün eklendi');
         }
     };
 
@@ -103,7 +105,7 @@ export default function AdminPage() {
         if (res.ok) {
             setEditingProduct(null);
             fetchData();
-            alert('Ürün güncellendi');
+            toast('Ürün güncellendi');
         }
     };
 
@@ -130,7 +132,7 @@ export default function AdminPage() {
             <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
                 <h1 className="text-white text-2xl font-bold mb-4">Admin Panel</h1>
                 <p className="text-gray-400 mb-8">Erişim için giriş yapın</p>
-                <LoginModal onLogin={handleLogin} onClose={() => alert('Admin paneli için giriş zorunludur.')} />
+                <LoginModal onLogin={handleLogin} onClose={() => toast('Admin paneli için giriş zorunludur.', 'info')} />
             </div>
         );
     }

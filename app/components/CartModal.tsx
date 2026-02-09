@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { User } from '../lib/auth';
+import { useToast } from './Toast';
 
 interface Product {
     id: number;
@@ -21,6 +22,7 @@ interface CartModalProps {
 }
 
 export default function CartModal({ items, products, user, onLoginRequest, onClose, onClear }: CartModalProps) {
+    const { toast } = useToast();
     const [formData, setFormData] = useState({
         senderCharacter: user?.characters?.[0] || '', // Default to first character
         fullName: '', // Receiver Name (Manual)
@@ -41,7 +43,7 @@ export default function CartModal({ items, products, user, onLoginRequest, onClo
         }
 
         if (!formData.senderCharacter || !formData.fullName || !formData.address || !formData.phone) {
-            alert('Lütfen tüm bilgileri doldurunuz.');
+            toast('Lütfen tüm bilgileri doldurunuz.', 'error');
             return;
         }
 
@@ -68,14 +70,14 @@ export default function CartModal({ items, products, user, onLoginRequest, onClo
             });
 
             if (response.ok) {
-                alert(`Siparişiniz alındı! Banka hesabınızdan $${total} tahsil edildi.`);
+                toast(`Siparişiniz alındı! Banka hesabınızdan $${total} tahsil edildi.`);
                 onClear();
                 onClose();
             } else {
-                alert('Sipariş oluşturulurken bir hata oluştu.');
+                toast('Sipariş oluşturulurken bir hata oluştu.', 'error');
             }
         } catch {
-            alert('Bağlantı hatası.');
+            toast('Bağlantı hatası.', 'error');
         } finally {
             setIsProcessing(false);
         }

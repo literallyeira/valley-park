@@ -32,7 +32,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
       {/* Hero Section */}
-      <div className="pt-24 pb-12 px-6">
+      <div className="pt-8 pb-12 px-6">
         <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="relative aspect-[4/3] bg-neutral-900 group overflow-hidden">
             <img
