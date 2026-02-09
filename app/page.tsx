@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -17,7 +17,7 @@ const DEFAULT_BANNERS = [
   { image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=1000&auto=format&fit=crop', title: 'AKSESUARLAR', buttonText: 'GÖZ AT', buttonLink: '/?category=Aksesuar' }
 ];
 
-export default function Home() {
+function HomeContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [heroBanners, setHeroBanners] = useState(DEFAULT_BANNERS);
   const [isLoading, setIsLoading] = useState(true);
@@ -96,5 +96,13 @@ export default function Home() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-white">Yükleniyor...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
