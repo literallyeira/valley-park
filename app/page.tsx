@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 interface Product {
   id: number;
@@ -11,20 +12,33 @@ interface Product {
   category: string;
 }
 
+const DEFAULT_BANNERS = [
+  { image: 'https://images.unsplash.com/photo-1576871337622-98d48d1cf531?q=80&w=1000&auto=format&fit=crop', title: 'YENİ SEZON', buttonText: 'ALIŞVERİŞE BAŞLA', buttonLink: '/' },
+  { image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=1000&auto=format&fit=crop', title: 'AKSESUARLAR', buttonText: 'GÖZ AT', buttonLink: '/?category=Aksesuar' }
+];
+
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [heroBanners, setHeroBanners] = useState(DEFAULT_BANNERS);
   const [isLoading, setIsLoading] = useState(true);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const categoryFilter = searchParams.get('category') || '';
+
+  const filteredProducts = categoryFilter
+    ? products.filter(p => p.category?.toLowerCase() === categoryFilter.toLowerCase())
+    : products;
 
   useEffect(() => {
-    // Fetch products
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => {
-        setProducts(data);
-        setIsLoading(false);
-      });
+    Promise.all([
+      fetch('/api/products').then(r => r.json()),
+      fetch('/api/site-config').then(r => r.json())
+    ]).then(([productsData, siteData]) => {
+      setProducts(productsData);
+      if (siteData.hero_banners?.length) setHeroBanners(siteData.hero_banners);
+      setIsLoading(false);
+    });
   }, []);
 
   if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Yükleniyor...</div>;
@@ -34,43 +48,34 @@ export default function Home() {
       {/* Hero Section */}
       <div className="pt-8 pb-12 px-6">
         <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="relative aspect-[4/3] bg-neutral-900 group overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1576871337622-98d48d1cf531?q=80&w=1000&auto=format&fit=crop"
-              alt="Featured"
-              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-            />
-            <div className="absolute bottom-6 left-6">
-              <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">YENİ SEZON</h2>
-              <button className="bg-white text-black px-6 py-2 font-bold text-sm uppercase hover:bg-neutral-200 transition-colors">
-                ALIŞVERİŞE BAŞLA
-              </button>
+          {heroBanners.map((banner, i) => (
+            <div key={i} className="relative aspect-[4/3] bg-neutral-900 group overflow-hidden">
+              <img
+                src={banner.image || ''}
+                alt={banner.title}
+                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+              />
+              <div className="absolute bottom-6 left-6">
+                <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">{banner.title}</h2>
+                <Link href={banner.buttonLink || '/'} className="inline-block bg-white text-black px-6 py-2 font-bold text-sm uppercase hover:bg-neutral-200 transition-colors">
+                  {banner.buttonText}
+                </Link>
+              </div>
             </div>
-          </div>
-          <div className="relative aspect-[4/3] bg-neutral-900 group overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=1000&auto=format&fit=crop"
-              alt="Featured"
-              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-            />
-            <div className="absolute bottom-6 left-6">
-              <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">AKSESUARLAR</h2>
-              <button className="bg-white text-black px-6 py-2 font-bold text-sm uppercase hover:bg-neutral-200 transition-colors">
-                GÖZ AT
-              </button>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
       {/* Products Grid */}
       <div className="max-w-[1400px] mx-auto px-6 pb-20">
         <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-4">
-          <h3 className="text-xl font-bold uppercase tracking-widest">TÜM ÜRÜNLER / {products.length}</h3>
+          <h3 className="text-xl font-bold uppercase tracking-widest">
+            {categoryFilter ? `${categoryFilter.toUpperCase()} / ` : 'TÜM ÜRÜNLER / '}{filteredProducts.length}
+          </h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-12">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <div key={product.id} className="group cursor-pointer" onClick={() => router.push(`/product/${product.id}`)}>
               <div className="aspect-square bg-neutral-900 overflow-hidden mb-4 relative">
                 <img

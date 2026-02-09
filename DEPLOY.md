@@ -1,5 +1,9 @@
 # Valley Park - GitHub & Vercel Deploy
 
+## Supabase - Site Config (Mevcut projeler için)
+
+Eğer `site_config` tablosu yoksa, Supabase SQL Editor'da `supabase_site_config.sql` dosyasını çalıştırın. Bu tablo navigasyon ve banner ayarları için kullanılır.
+
 ## 1. GitHub repo oluştur
 
 1. **https://github.com/new** adresine git

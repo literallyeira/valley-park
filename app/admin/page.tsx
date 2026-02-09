@@ -17,7 +17,7 @@ interface Product {
 export default function AdminPage() {
     const { toast } = useToast();
     const [user, setUser] = useState<User | null>(null);
-    const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'categories'>('orders');
+    const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'categories' | 'site'>('orders');
     const [products, setProducts] = useState<Product[]>([]);
     const [orders, setOrders] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +25,9 @@ export default function AdminPage() {
     const [newProduct, setNewProduct] = useState({ name: '', price: '', image: '', category: '', description: '' });
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [editForm, setEditForm] = useState({ name: '', price: '', image: '', category: '', description: '' });
+
+    const [navItems, setNavItems] = useState<{ label: string; href: string }[]>([]);
+    const [heroBanners, setHeroBanners] = useState<{ image: string; title: string; buttonText: string; buttonLink: string }[]>([]);
 
     useEffect(() => {
         const checkAuth = () => {
@@ -42,12 +45,16 @@ export default function AdminPage() {
     }, []);
 
     const fetchData = async () => {
-        const [productsRes, ordersRes] = await Promise.all([
+        const [productsRes, ordersRes, siteRes] = await Promise.all([
             fetch('/api/products'),
-            fetch('/api/orders')
+            fetch('/api/orders'),
+            fetch('/api/site-config')
         ]);
         setProducts(await productsRes.json());
         setOrders(await ordersRes.json());
+        const site = await siteRes.json();
+        setNavItems(site.nav_items || []);
+        setHeroBanners(site.hero_banners || []);
     };
 
     const handleLogin = (u: User) => {
@@ -125,6 +132,32 @@ export default function AdminPage() {
         fetchData();
     };
 
+    const handleSaveNav = async () => {
+        const res = await fetch('/api/site-config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'nav_items', value: navItems }) });
+        if (res.ok) { toast('Navigasyon güncellendi'); }
+    };
+
+    const handleSaveBanners = async () => {
+        const res = await fetch('/api/site-config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'hero_banners', value: heroBanners }) });
+        if (res.ok) { toast('Bannerlar güncellendi'); }
+    };
+
+    const addNavItem = () => setNavItems([...navItems, { label: '', href: '/' }]);
+    const removeNavItem = (i: number) => setNavItems(navItems.filter((_, idx) => idx !== i));
+    const updateNavItem = (i: number, field: 'label' | 'href', val: string) => {
+        const next = [...navItems];
+        next[i] = { ...next[i], [field]: val };
+        setNavItems(next);
+    };
+
+    const addBanner = () => setHeroBanners([...heroBanners, { image: '', title: '', buttonText: '', buttonLink: '/' }]);
+    const removeBanner = (i: number) => setHeroBanners(heroBanners.filter((_, idx) => idx !== i));
+    const updateBanner = (i: number, field: string, val: string) => {
+        const next = [...heroBanners];
+        next[i] = { ...next[i], [field]: val };
+        setHeroBanners(next);
+    };
+
     if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Yükleniyor...</div>;
 
     if (!user) {
@@ -159,6 +192,12 @@ export default function AdminPage() {
                         className={`px-5 py-2 font-bold uppercase text-sm transition-colors ${activeTab === 'categories' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
                     >
                         Kategoriler
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('site')}
+                        className={`px-5 py-2 font-bold uppercase text-sm transition-colors ${activeTab === 'site' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
+                    >
+                        Site Ayarları
                     </button>
                     <button onClick={() => { setUser(null); localStorage.removeItem('vp_user'); }} className="text-red-500 font-bold uppercase text-sm hover:text-red-400">
                         Çıkış
@@ -250,6 +289,68 @@ export default function AdminPage() {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'site' && (
+                <div className="space-y-10 max-w-3xl">
+                    <div className="bg-neutral-900 border border-white/10 p-6">
+                        <h3 className="text-xl font-bold uppercase mb-4">Üst Menü (Navigasyon Tabları)</h3>
+                        <p className="text-gray-500 text-sm mb-6">Header'da görünen TÜM ÜRÜNLER, GİYİM, AKSESUAR gibi linkleri düzenleyin.</p>
+                        <div className="space-y-3 mb-6">
+                            {navItems.map((item, i) => (
+                                <div key={i} className="flex gap-2 items-center">
+                                    <input type="text" placeholder="Etiket (örn: TÜM ÜRÜNLER)" value={item.label} onChange={e => updateNavItem(i, 'label', e.target.value)} className="flex-1 bg-black border border-white/20 p-2 text-white text-sm focus:border-white focus:outline-none" />
+                                    <input type="text" placeholder="Link (örn: / veya /?category=Giyim)" value={item.href} onChange={e => updateNavItem(i, 'href', e.target.value)} className="flex-1 bg-black border border-white/20 p-2 text-white text-sm focus:border-white focus:outline-none" />
+                                    <button type="button" onClick={() => removeNavItem(i)} className="text-red-500 hover:text-white p-2"><i className="fa-solid fa-trash"></i></button>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex gap-2">
+                            <button type="button" onClick={addNavItem} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm font-bold uppercase">Tab Ekle</button>
+                            <button type="button" onClick={handleSaveNav} className="bg-white text-black px-4 py-2 text-sm font-bold uppercase hover:bg-gray-200">Kaydet</button>
+                        </div>
+                    </div>
+
+                    <div className="bg-neutral-900 border border-white/10 p-6">
+                        <h3 className="text-xl font-bold uppercase mb-4">Ana Sayfa Bannerları</h3>
+                        <p className="text-gray-500 text-sm mb-6">Hero bölümündeki görseller, başlıklar ve butonları düzenleyin.</p>
+                        <div className="space-y-6 mb-6">
+                            {heroBanners.map((banner, i) => (
+                                <div key={i} className="border border-white/10 p-4 space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-400 font-bold text-sm">Banner #{i + 1}</span>
+                                        <button type="button" onClick={() => removeBanner(i)} className="text-red-500 hover:text-white text-sm"><i className="fa-solid fa-trash"></i></button>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 mb-1">Görsel URL</label>
+                                            <input type="url" value={banner.image} onChange={e => updateBanner(i, 'image', e.target.value)} className="w-full bg-black border border-white/20 p-2 text-white text-sm focus:border-white focus:outline-none" />
+                                            {banner.image && <img src={banner.image} alt="" className="mt-2 w-full h-24 object-cover" />}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 mb-1">Başlık</label>
+                                                <input type="text" value={banner.title} onChange={e => updateBanner(i, 'title', e.target.value)} placeholder="YENİ SEZON" className="w-full bg-black border border-white/20 p-2 text-white text-sm focus:border-white focus:outline-none" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 mb-1">Buton Metni</label>
+                                                <input type="text" value={banner.buttonText} onChange={e => updateBanner(i, 'buttonText', e.target.value)} placeholder="ALIŞVERİŞE BAŞLA" className="w-full bg-black border border-white/20 p-2 text-white text-sm focus:border-white focus:outline-none" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 mb-1">Buton Linki</label>
+                                                <input type="text" value={banner.buttonLink} onChange={e => updateBanner(i, 'buttonLink', e.target.value)} placeholder="/" className="w-full bg-black border border-white/20 p-2 text-white text-sm focus:border-white focus:outline-none" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex gap-2">
+                            <button type="button" onClick={addBanner} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm font-bold uppercase">Banner Ekle</button>
+                            <button type="button" onClick={handleSaveBanners} className="bg-white text-black px-4 py-2 text-sm font-bold uppercase hover:bg-gray-200">Kaydet</button>
+                        </div>
                     </div>
                 </div>
             )}

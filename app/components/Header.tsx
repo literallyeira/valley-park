@@ -20,14 +20,19 @@ export default function Header() {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
+    const [navItems, setNavItems] = useState<{ label: string; href: string }[]>([
+        { label: 'TÜM ÜRÜNLER', href: '/' },
+        { label: 'GİYİM', href: '/?category=Giyim' },
+        { label: 'AKSESUAR', href: '/?category=Aksesuar' }
+    ]);
 
-    // We need products for CartModal to render details. 
-    // In a real app, cart items should probably contain their own basic details or fetch them.
-    // For now, fetching products here to pass to CartModal is acceptable.
     useEffect(() => {
-        fetch('/api/products')
-            .then(res => res.json())
-            .then(data => setProducts(data));
+        fetch('/api/products').then(res => res.json()).then(data => setProducts(data));
+    }, []);
+    useEffect(() => {
+        fetch('/api/site-config').then(res => res.json()).then(data => {
+            if (data.nav_items?.length) setNavItems(data.nav_items);
+        });
     }, []);
 
     const { items: cartItems, clearCart } = useCart();
@@ -67,9 +72,9 @@ export default function Header() {
                             <img src="/logo.png" alt="Valley Park" className="h-12 w-auto" />
                         </Link>
                         <div className="hidden md:flex items-center gap-8 text-sm font-bold tracking-widest text-gray-400">
-                            <Link href="/" className="hover:text-white transition-colors">TÜM ÜRÜNLER</Link>
-                            <Link href="#" className="hover:text-white transition-colors">GİYİM</Link>
-                            <Link href="#" className="hover:text-white transition-colors">AKSESUAR</Link>
+                            {navItems.map((item, i) => (
+                                <Link key={i} href={item.href || '/'} className="hover:text-white transition-colors">{item.label || 'Link'}</Link>
+                            ))}
                         </div>
                     </div>
 

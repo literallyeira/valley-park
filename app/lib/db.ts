@@ -54,3 +54,19 @@ export const updateOrderStatus = async (id: string | number, status: string) => 
     if (error) console.error('Error updating order:', error);
     return data;
 };
+
+// Site config (nav, banners)
+export const getSiteConfig = async (key: string) => {
+    const { data, error } = await supabase.from('site_config').select('value').eq('key', key).single();
+    if (error) {
+        console.error('Error fetching site config:', error);
+        return null;
+    }
+    return data?.value;
+};
+
+export const setSiteConfig = async (key: string, value: any) => {
+    const { data, error } = await supabase.from('site_config').upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' }).select().single();
+    if (error) console.error('Error updating site config:', error);
+    return data;
+};
