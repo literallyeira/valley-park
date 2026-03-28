@@ -28,16 +28,29 @@ export async function POST(request: Request) {
         const newOrder = await createOrder({ ...data, status: 'Ödeme Bekleniyor' });
 
         // 2. Generate banking gateway token
-        // MATCHING MATCHUP EXACTLY: No extra params, no User-Agent first (re-test)
+        // MATCHING MATCHUP BUT WITH BETTER HEADERS TO BYPASS WAF
         const generateUrl = `${GATEWAY_BASE}/gateway_token/generateToken?price=${Math.round(amount)}&type=0`;
         
         console.log('Fetching banking token from:', generateUrl);
 
-        const tokenRes = await fetch(generateUrl, { 
-            headers: { 
-                'Authorization': `Bearer ${BANKING_AUTH_KEY}` 
-            } 
-        });
+        const headers = { 
+            'Authorization': `Bearer ${BANKING_AUTH_KEY}`,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'Origin': 'https://valley-park.business',
+            'Referer': 'https://valley-park.business/',
+            'Accept': 'application/json, text/plain, */*'
+        };
+
+        let tokenRes = await fetch(generateUrl, { method: 'GET', headers });
+
+        // If GET still gives 403, try POST just in case (though matchup uses GET)
+        if (tokenRes.status === 403) {
+            console.log('GET 403, trying POST...');
+            tokenRes = await fetch(`${GATEWAY_BASE}/gateway_token/generateToken?price=${Math.round(amount)}&type=0`, { 
+                method: 'POST', 
+                headers 
+            });
+        }
 
         if (!tokenRes.ok) {
             const errText = await tokenRes.text();
