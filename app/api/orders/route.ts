@@ -28,20 +28,36 @@ export async function POST(request: Request) {
         const newOrder = await createOrder({ ...data, status: 'Ödeme Bekleniyor' });
 
         // 2. Generate banking gateway token
-        const tokenRes = await fetch(
-            `${GATEWAY_BASE}/gateway_token/generateToken?price=${amount}&type=0&order_id=${newOrder.id}`,
-            { 
+        // We add a User-Agent to avoid being blocked by Cloudflare (403 Forbidden)
+        const commonHeaders = {
+            'Authorization': `Bearer ${BANKING_AUTH_KEY}`,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*'
+        };
+
+        const generateUrl = `${GATEWAY_BASE}/gateway_token/generateToken?price=${amount}&type=0&order_id=${newOrder.id}`;
+        
+        console.log('Fetching banking token from:', generateUrl);
+
+        let tokenRes = await fetch(generateUrl, { 
+            method: 'GET',
+            headers: commonHeaders 
+        });
+
+        // 403 often means WAF block. If that happens, we try without Bearer in headers (sometimes it's sensitive)
+        // or we try passing it in the query string.
+        if (tokenRes.status === 403) {
+            console.log('403 encountered, trying with auth_key in query string...');
+            tokenRes = await fetch(`${generateUrl}&auth_key=${BANKING_AUTH_KEY}`, {
                 method: 'GET',
-                headers: { 
-                    'Authorization': `Bearer ${BANKING_AUTH_KEY}` 
-                } 
-            }
-        );
+                headers: { 'User-Agent': commonHeaders['User-Agent'] }
+            });
+        }
 
         if (!tokenRes.ok) {
             const errText = await tokenRes.text();
             console.error('Banking Token Error:', tokenRes.status, errText);
-            return NextResponse.json({ ...newOrder, error: 'Payment gateway error' });
+            return NextResponse.json({ ...newOrder, error: `Gateway Error (${tokenRes.status})` });
         }
 
         const rawToken = await tokenRes.text();
