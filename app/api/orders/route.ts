@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     return NextResponse.json(orders);
 }
 
-const BANKING_AUTH_KEY = 'KHMema1Pw1LBcJ7wwtlyXRLPPSSz46rycbcCXVx1YFiOhlgIjC1YFcr5XN3TwLW7';
+const BANKING_AUTH_KEY = 'sGW1R81tH7rqBlGBMmXPZ6QAWdK2YuLHvSGIYiP5oMjD4KTZmIkYJ7wguDg0tudd';
 const GATEWAY_BASE = 'https://banking-tr.gta.world';
 
 export async function POST(request: Request) {
