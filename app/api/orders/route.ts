@@ -28,7 +28,7 @@ export async function POST(request: Request) {
         const newOrder = await createOrder({ ...data, status: 'Ödeme Bekleniyor' });
 
         // 2. Generate banking gateway token
-        // MATCHING MATCHUP BUT WITH BETTER HEADERS TO BYPASS WAF
+        // Use UCP-mimicking headers to bypass Cloudflare/WAF (Pattern from MatchUp)
         const generateUrl = `${GATEWAY_BASE}/gateway_token/generateToken?price=${Math.round(amount)}&type=0`;
         
         console.log('Fetching banking token from:', generateUrl);
@@ -36,21 +36,16 @@ export async function POST(request: Request) {
         const headers = { 
             'Authorization': `Bearer ${BANKING_AUTH_KEY}`,
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-            'Origin': 'https://valley-park.business',
-            'Referer': 'https://valley-park.business/',
-            'Accept': 'application/json, text/plain, */*'
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Origin': 'https://ucp-tr.gta.world',
+            'Referer': 'https://ucp-tr.gta.world/'
         };
 
-        let tokenRes = await fetch(generateUrl, { method: 'GET', headers });
-
-        // If GET still gives 403, try POST just in case (though matchup uses GET)
-        if (tokenRes.status === 403) {
-            console.log('GET 403, trying POST...');
-            tokenRes = await fetch(`${GATEWAY_BASE}/gateway_token/generateToken?price=${Math.round(amount)}&type=0`, { 
-                method: 'POST', 
-                headers 
-            });
-        }
+        const tokenRes = await fetch(generateUrl, { 
+            method: 'GET', 
+            headers 
+        });
 
         if (!tokenRes.ok) {
             const errText = await tokenRes.text();
