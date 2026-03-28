@@ -14,8 +14,8 @@ export default function LoginModal({ onLogin, onClose }: LoginModalProps) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-            <div className="bg-[#1e293b] w-full max-w-md rounded-2xl border border-white/10 shadow-2xl p-8 animate-fade-in relative" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+            <div className="bg-black w-full max-w-md border border-white/20 shadow-2xl p-8 animate-fade-in relative" onClick={e => e.stopPropagation()}>
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
@@ -31,7 +31,7 @@ export default function LoginModal({ onLogin, onClose }: LoginModalProps) {
                 <div className="space-y-6">
                     <button
                         onClick={handleGTAWLogin}
-                        className="w-full bg-[#1da1f2] text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
+                        className="w-full bg-white text-black font-black uppercase tracking-widest py-4 border border-white/20 hover:bg-gray-200 transition-colors flex items-center justify-center gap-3"
                     >
                         <i className="fa-solid fa-gamepad text-xl"></i>
                         GTAW İLE GİRİŞ YAP

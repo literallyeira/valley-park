@@ -24,7 +24,7 @@ interface CartModalProps {
 export default function CartModal({ items, products, user, onLoginRequest, onClose, onClear }: CartModalProps) {
     const { toast } = useToast();
     const [formData, setFormData] = useState({
-        senderCharacter: user?.characters?.[0] || '', // Default to first character
+        senderCharacter: user?.username || '', 
         fullName: '', // Receiver Name (Manual)
         address: '',
         phone: ''
@@ -121,9 +121,12 @@ export default function CartModal({ items, products, user, onLoginRequest, onClo
                                             value={formData.senderCharacter}
                                             onChange={e => setFormData({ ...formData, senderCharacter: e.target.value })}
                                         >
-                                            {user?.characters?.map((char, idx) => (
-                                                <option key={idx} value={char}>{char}</option>
-                                            ))}
+                                            <option value={user?.username || ''}>{user?.username}</option>
+                                            {user?.characters?.map((char: any, idx: number) => {
+                                                const charStr = typeof char === 'string' ? char : `${char.firstname} ${char.lastname}`.replace('_', ' ');
+                                                if (charStr === user?.username) return null; // zaten üstte ekledik
+                                                return <option key={idx} value={charStr}>{charStr}</option>;
+                                            })}
                                         </select>
                                     </div>
 

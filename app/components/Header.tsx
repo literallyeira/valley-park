@@ -85,7 +85,7 @@ export default function Header() {
                                     Siparişlerim
                                 </Link>
                                 <span className="text-xs font-bold text-white border border-white px-2 py-1">
-                                    {user.ucpName}
+                                    {user.username}
                                 </span>
                                 <button onClick={handleLogout} className="text-gray-400 hover:text-white" title="Çıkış Yap">
                                     <i className="fa-solid fa-right-from-bracket"></i>

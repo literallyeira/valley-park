@@ -53,10 +53,7 @@ export default function SelectCharacterPage() {
 
     return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
-            {/* Background effects */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[var(--primary)]/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
-
-            <div className="bg-neutral-900/80 backdrop-blur-md border border-white/10 p-8 w-full max-w-2xl text-white rounded-2xl relative z-10 shadow-2xl animate-fade-in">
+            <div className="bg-black border border-white/20 p-8 w-full max-w-2xl text-white relative z-10 shadow-2xl animate-fade-in">
                 <div className="text-center mb-10">
                     <h1 className="text-3xl font-black uppercase tracking-tighter mb-2">KARAKTER SEÇİMİ</h1>
                     <p className="text-gray-400">Hoş geldin, <span className="text-[var(--primary)] font-bold">{user?.username}</span>. Lütfen mağazaya giriş yapmak istediğin karakteri seç.</p>
@@ -67,9 +64,9 @@ export default function SelectCharacterPage() {
                         <button
                             key={char.id}
                             onClick={() => finalizeLogin(user, char)}
-                            className="bg-black border border-white/10 hover:border-white/50 hover:bg-white/5 transition-all p-6 text-left rounded-xl group relative overflow-hidden flex items-center gap-4"
+                            className="bg-black border border-white/20 hover:border-white hover:bg-white/5 transition-all p-6 text-left group relative overflow-hidden flex items-center gap-4"
                         >
-                            <div className="w-12 h-12 rounded-full bg-neutral-800 flex items-center justify-center text-white/50 group-hover:text-white group-hover:scale-110 transition-all shrink-0">
+                            <div className="w-12 h-12 bg-neutral-900 flex items-center justify-center text-white/50 group-hover:text-white transition-all shrink-0">
                                 <i className="fa-solid fa-user"></i>
                             </div>
                             <div>
@@ -83,7 +80,7 @@ export default function SelectCharacterPage() {
                 </div>
 
                 {user?.characters?.length === 0 && (
-                    <div className="text-center p-8 bg-white/5 border border-white/10 rounded-xl">
+                    <div className="text-center p-8 bg-neutral-900 border border-white/20">
                         <i className="fa-solid fa-triangle-exclamation text-4xl text-yellow-500 mb-4"></i>
                         <p className="text-gray-300">Bu UCP hesabına bağlı bir karakter bulunamadı. Lütfen önce GTA World üzerinden bir karakter oluşturun.</p>
                         <button 
