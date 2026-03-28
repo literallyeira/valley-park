@@ -19,16 +19,17 @@ export async function POST(request: Request) {
         }
 
         // Extract order details from webhook body
-        // Common banking webhook fields: order_id, status (e.g., 'completed', 'paid', 'success')
         const orderId = body.order_id || body.referenceId || body.id;
-        const paymentStatus = body.status || body.payment_status;
+        const paymentStatus = body.status || body.payment_status || body.message;
 
         if (!orderId) {
             return NextResponse.json({ error: 'Missing order ID' }, { status: 400 });
         }
 
-        // Depending on gateway, the success status might be 'success', 'paid', 'completed', etc.
-        const isSuccess = ['success', 'paid', 'completed', 'approved', '1'].includes(String(paymentStatus).toLowerCase());
+        // Support 'payment_successful' from banking-tr.gta.world
+        const isSuccess = [
+            'success', 'paid', 'completed', 'approved', '1', 'payment_successful'
+        ].includes(String(paymentStatus).toLowerCase());
 
         if (isSuccess) {
             // Update order status to Hazırlanıyor or Ödendi

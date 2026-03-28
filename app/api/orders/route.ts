@@ -16,10 +16,62 @@ export async function GET(request: Request) {
     return NextResponse.json(orders);
 }
 
+const BANKING_AUTH_KEY = 'sGW1R81tH7rqBlGBMmXPZ6QAWdK2YuLHvSGIYiP5oMjD4KTZmIkYJ7wguDg0tudd';
+const GATEWAY_BASE = 'https://banking-tr.gta.world';
+
 export async function POST(request: Request) {
-    const data = await request.json();
-    const newOrder = await createOrder(data);
-    return NextResponse.json(newOrder);
+    try {
+        const data = await request.json();
+        const amount = data.total;
+
+        // 1. Create the order in pending state first
+        const newOrder = await createOrder({ ...data, status: 'Ödeme Bekleniyor' });
+
+        // 2. Generate banking gateway token
+        const tokenRes = await fetch(
+            `${GATEWAY_BASE}/gateway_token/generateToken?price=${amount}&type=0&order_id=${newOrder.id}`,
+            { 
+                method: 'GET',
+                headers: { 
+                    'Authorization': `Bearer ${BANKING_AUTH_KEY}` 
+                } 
+            }
+        );
+
+        if (!tokenRes.ok) {
+            const errText = await tokenRes.text();
+            console.error('Banking Token Error:', tokenRes.status, errText);
+            return NextResponse.json({ ...newOrder, error: 'Payment gateway error' });
+        }
+
+        const rawToken = await tokenRes.text();
+        let token: string;
+        try {
+            const parsed = JSON.parse(rawToken);
+            token = typeof parsed === 'string' ? parsed : (parsed?.token || parsed?.data || String(parsed));
+        } catch {
+            token = rawToken.replace(/^"|"$/g, '').trim();
+        }
+
+        if (!token) {
+            return NextResponse.json({ ...newOrder, error: 'Token not received' });
+        }
+
+        // 3. Save token to order for webhook matching
+        await updateOrderStatus(newOrder.id, 'Ödeme Bekleniyor', token);
+
+        const redirectUrl = `${GATEWAY_BASE}/gateway/${encodeURIComponent(token)}`;
+
+        // 4. Return the order with the redirect URL
+        return NextResponse.json({ 
+            ...newOrder, 
+            redirectUrl 
+        });
+
+    } catch (error) {
+        console.error('Order/Payment Error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
 }
 
 export async function PUT(request: Request) {

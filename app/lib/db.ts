@@ -37,7 +37,7 @@ export const createOrder = async (order: any) => {
         items: order.items,
         total: order.total,
         payment_method: order.paymentMethod,
-        status: 'Hazırlanıyor',
+        status: order.status || 'Hazırlanıyor',
         sender_character: order.senderCharacter,
         full_name: order.fullName,
         address: order.address,
@@ -49,8 +49,10 @@ export const createOrder = async (order: any) => {
     return data;
 };
 
-export const updateOrderStatus = async (id: string | number, status: string) => {
-    const { data, error } = await supabase.from('orders').update({ status }).eq('id', id).select().single();
+export const updateOrderStatus = async (id: string | number, status: string, gatewayToken?: string) => {
+    const updates: any = { status };
+    if (gatewayToken) updates.gateway_token = gatewayToken;
+    const { data, error } = await supabase.from('orders').update(updates).eq('id', id).select().single();
     if (error) console.error('Error updating order:', error);
     return data;
 };

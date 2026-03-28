@@ -49,9 +49,6 @@ export default function CartModal({ items, products, user, onLoginRequest, onClo
 
         setIsProcessing(true);
 
-        // Simulate Banking Delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
         // Create Order
         try {
             const response = await fetch('/api/orders', {
@@ -69,12 +66,21 @@ export default function CartModal({ items, products, user, onLoginRequest, onClo
                 })
             });
 
+            const result = await response.json();
+
             if (response.ok) {
-                toast(`Siparişiniz alındı! Banka hesabınızdan $${total} tahsil edildi.`);
-                onClear();
-                onClose();
+                if (result.redirectUrl) {
+                    toast('Bankaya yönlendiriliyorsunuz...');
+                    window.location.href = result.redirectUrl;
+                } else if (result.error) {
+                    toast(`Hata: ${result.error}`, 'error');
+                } else {
+                    toast(`Siparişiniz alındı!`);
+                    onClear();
+                    onClose();
+                }
             } else {
-                toast('Sipariş oluşturulurken bir hata oluştu.', 'error');
+                toast(result.error || 'Sipariş oluşturulurken bir hata oluştu.', 'error');
             }
         } catch {
             toast('Bağlantı hatası.', 'error');
