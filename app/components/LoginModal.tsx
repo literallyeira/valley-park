@@ -1,36 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { mockLogin } from '../lib/auth';
-
 interface LoginModalProps {
     onLogin: (user: any) => void;
     onClose: () => void;
 }
 
 export default function LoginModal({ onLogin, onClose }: LoginModalProps) {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError('');
-
-        try {
-            const user = await mockLogin(username, password);
-            if (user) {
-                onLogin(user);
-            } else {
-                setError('Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
-            }
-        } catch {
-            setError('Bir hata oluştu.');
-        } finally {
-            setIsLoading(false);
-        }
+    const handleGTAWLogin = () => {
+        const clientId = '55';
+        const redirectUri = encodeURIComponent('https://valley-park.business/api/auth');
+        const oauthUrl = `https://ucp-tr.gta.world/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
+        window.location.href = oauthUrl;
     };
 
     return (
@@ -45,55 +25,18 @@ export default function LoginModal({ onLogin, onClose }: LoginModalProps) {
 
                 <div className="text-center mb-8">
                     <h2 className="text-2xl font-bold text-white mb-2">Giriş Yap</h2>
-                    <p className="text-gray-400 text-sm">Valley Park Concept Store'a erişmek için UCP hesabınızla giriş yapın.</p>
+                    <p className="text-gray-400 text-sm">Valley Park Concept Store'a erişmek için GTA World hesabınızla giriş yapın.</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Kullanıcı Adı</label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            className="w-full bg-[#0f172a] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
-                            placeholder="UCP Kullanıcı Adı"
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Şifre</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full bg-[#0f172a] border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
-                            placeholder="••••••••"
-                            required
-                        />
-                    </div>
-
-                    {error && (
-                        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                            <p className="text-red-400 text-sm text-center">{error}</p>
-                        </div>
-                    )}
-
+                <div className="space-y-6">
                     <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full bg-[var(--primary)] text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={handleGTAWLogin}
+                        className="w-full bg-[#1da1f2] text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
                     >
-                        {isLoading ? (
-                            <span className="flex items-center justify-center gap-2">
-                                <i className="fa-solid fa-spinner fa-spin"></i>
-                                Giriş Yapılıyor...
-                            </span>
-                        ) : (
-                            'Giriş Yap'
-                        )}
+                        <i className="fa-solid fa-gamepad text-xl"></i>
+                        GTAW İLE GİRİŞ YAP
                     </button>
-                </form>
+                </div>
             </div>
         </div>
     );

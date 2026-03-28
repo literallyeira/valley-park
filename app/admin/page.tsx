@@ -22,6 +22,9 @@ export default function AdminPage() {
     const [orders, setOrders] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    const [adminUser, setAdminUser] = useState('');
+    const [adminPass, setAdminPass] = useState('');
+
     const [newProduct, setNewProduct] = useState({ name: '', price: '', image: '', category: '', description: '' });
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [editForm, setEditForm] = useState({ name: '', price: '', image: '', category: '', description: '' });
@@ -57,10 +60,16 @@ export default function AdminPage() {
         setHeroBanners(site.hero_banners || []);
     };
 
-    const handleLogin = (u: User) => {
-        setUser(u);
-        localStorage.setItem('vp_user', JSON.stringify(u));
-        fetchData();
+    const handleLogin = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (adminUser === 'admin' && adminPass === '12345') {
+            const u: User = { username: 'Admin', ucpName: 'admin', characters: [] };
+            setUser(u);
+            localStorage.setItem('vp_user', JSON.stringify(u));
+            fetchData();
+        } else {
+            toast('Hatalı kullanıcı adı veya şifre', 'error');
+        }
     };
 
     const categories = [...new Set(products.map(p => p.category))].sort();
@@ -163,9 +172,35 @@ export default function AdminPage() {
     if (!user) {
         return (
             <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
-                <h1 className="text-white text-2xl font-bold mb-4">Admin Panel</h1>
-                <p className="text-gray-400 mb-8">Erişim için giriş yapın</p>
-                <LoginModal onLogin={handleLogin} onClose={() => toast('Admin paneli için giriş zorunludur.', 'info')} />
+                <div className="bg-neutral-900 border border-white/10 w-full max-w-sm p-8 flex flex-col items-center">
+                    <h1 className="text-white text-2xl font-black uppercase mb-2">Admin Panel</h1>
+                    <p className="text-gray-500 text-sm mb-6">Yönetici yetkisi gereklidir.</p>
+                    <form onSubmit={handleLogin} className="w-full space-y-4">
+                        <div>
+                            <input 
+                                type="text" 
+                                placeholder="Kullanıcı Adı" 
+                                value={adminUser} 
+                                onChange={e => setAdminUser(e.target.value)}
+                                className="w-full bg-black border border-white/20 p-3 text-white focus:border-white focus:outline-none"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <input 
+                                type="password" 
+                                placeholder="Şifre" 
+                                value={adminPass} 
+                                onChange={e => setAdminPass(e.target.value)}
+                                className="w-full bg-black border border-white/20 p-3 text-white focus:border-white focus:outline-none"
+                                required
+                            />
+                        </div>
+                        <button type="submit" className="w-full bg-white text-black font-bold uppercase py-3 hover:bg-gray-200 transition-colors">
+                            GİRİŞ YAP
+                        </button>
+                    </form>
+                </div>
             </div>
         );
     }
