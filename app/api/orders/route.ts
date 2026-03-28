@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import axios from 'axios';
 import { getOrders, createOrder, updateOrderStatus } from '../../lib/db';
 
 export async function GET(request: Request) {
@@ -28,12 +29,12 @@ export async function POST(request: Request) {
         const newOrder = await createOrder({ ...data, status: 'Ödeme Bekleniyor' });
 
         // 2. Generate banking gateway token
-        // Use UCP-mimicking headers to bypass Cloudflare/WAF (Pattern from MatchUp)
+        // Use axios and UCP-mimicking headers to bypass Cloudflare/WAF (Pattern from MatchUp)
         const generateUrl = `${GATEWAY_BASE}/gateway_token/generateToken?price=${Math.round(amount)}&type=0`;
         
-        console.log('Fetching banking token from:', generateUrl);
+        console.log('Fetching banking token via axios from:', generateUrl);
 
-        const headers = { 
+        const axiosHeaders = { 
             'Authorization': `Bearer ${BANKING_AUTH_KEY}`,
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
             'Accept': 'application/json, text/plain, */*',
@@ -42,24 +43,22 @@ export async function POST(request: Request) {
             'Referer': 'https://ucp-tr.gta.world/'
         };
 
-        const tokenRes = await fetch(generateUrl, { 
-            method: 'GET', 
-            headers 
-        });
-
-        if (!tokenRes.ok) {
-            const errText = await tokenRes.text();
-            console.error('Banking Token Error:', tokenRes.status, errText);
-            return NextResponse.json({ ...newOrder, error: `Gateway Error (${tokenRes.status})` });
-        }
-
-        const rawToken = await tokenRes.text();
-        let token: string;
+        let token: string = '';
         try {
-            const parsed = JSON.parse(rawToken);
-            token = typeof parsed === 'string' ? parsed : (parsed?.token || parsed?.data || String(parsed));
-        } catch {
-            token = rawToken.replace(/^"|"$/g, '').trim();
+            const tokenResponse = await axios.get(generateUrl, {
+                headers: axiosHeaders,
+                timeout: 10000
+            });
+
+            const rawToken = tokenResponse.data;
+            if (typeof rawToken === 'string') {
+                token = rawToken.replace(/^"|"$/g, '').trim();
+            } else {
+                token = rawToken?.token || rawToken?.data || String(rawToken);
+            }
+        } catch (error: any) {
+            console.error('Banking Token Error:', error.response?.status, error.response?.data || error.message);
+            return NextResponse.json({ ...newOrder, error: `Gateway Error (${error.response?.status || 'Network'})` });
         }
 
         if (!token) {
