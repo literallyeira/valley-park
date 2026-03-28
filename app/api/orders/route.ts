@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     return NextResponse.json(orders);
 }
 
-const BANKING_AUTH_KEY = 'sGW1R81tH7rqBlGBMmXPZ6QAWdK2YuLHvSGIYiP5oMjD4KTZmIkYJ7wguDg0tudd';
+const BANKING_AUTH_KEY = 'KHMema1Pw1LBcJ7wwtlyXRLPPSSz46rycbcCXVx1YFiOhlgIjC1YFcr5XN3TwLW7';
 const GATEWAY_BASE = 'https://banking-tr.gta.world';
 
 export async function POST(request: Request) {
@@ -31,10 +31,10 @@ export async function POST(request: Request) {
         // 2. Generate banking gateway token
         // Use axios and UCP-mimicking headers to bypass Cloudflare/WAF (Pattern from MatchUp)
         const generateUrl = `${GATEWAY_BASE}/gateway_token/generateToken?price=${Math.round(amount)}&type=0`;
-        
+
         console.log('Fetching banking token via axios from:', generateUrl);
 
-        const axiosHeaders = { 
+        const axiosHeaders = {
             'Authorization': `Bearer ${BANKING_AUTH_KEY}`,
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
             'Accept': 'application/json, text/plain, */*',
@@ -71,9 +71,9 @@ export async function POST(request: Request) {
         const redirectUrl = `${GATEWAY_BASE}/gateway/${encodeURIComponent(token)}`;
 
         // 4. Return the order with the redirect URL
-        return NextResponse.json({ 
-            ...newOrder, 
-            redirectUrl 
+        return NextResponse.json({
+            ...newOrder,
+            redirectUrl
         });
 
     } catch (error) {

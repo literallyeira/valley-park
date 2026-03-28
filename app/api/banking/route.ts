@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { updateOrderStatus } from '../../lib/db';
 
-const BANKING_AUTH_KEY = 'sGW1R81tH7rqBlGBMmXPZ6QAWdK2YuLHvSGIYiP5oMjD4KTZmIkYJ7wguDg0tudd';
+const BANKING_AUTH_KEY = 'KHMema1Pw1LBcJ7wwtlyXRLPPSSz46rycbcCXVx1YFiOhlgIjC1YFcr5XN3TwLW7';
 
 export async function POST(request: Request) {
     try {
