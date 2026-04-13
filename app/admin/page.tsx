@@ -39,7 +39,7 @@ export default function AdminPage() {
             const savedUser = localStorage.getItem('vp_user');
             if (savedUser) {
                 const parsedUser = JSON.parse(savedUser);
-                if (parsedUser.ucpName === 'admin' || parsedUser.ucpName === 'Murat') {
+                if (parsedUser.ucpName === 'neo' || parsedUser.ucpName === 'lfm') {
                     setUser(parsedUser);
                     fetchData();
                 }
@@ -64,8 +64,12 @@ export default function AdminPage() {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        if (adminUser === 'admin' && adminPass === '12345') {
-            const u: User = { username: 'Admin', ucpName: 'admin', characters: [] };
+        
+        const isNeo = adminUser === 'neo' && adminPass === '316231';
+        const isLfm = adminUser === 'lfm' && adminPass === '12345';
+
+        if (isNeo || isLfm) {
+            const u: User = { username: 'Admin', ucpName: adminUser, characters: [] };
             setUser(u);
             localStorage.setItem('vp_user', JSON.stringify(u));
             fetchData();
