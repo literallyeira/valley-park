@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { updateOrderStatus } from '../../lib/db';
+import { updateOrderStatus, getOrderByGatewayToken } from '../../lib/db';
 
 const BANKING_AUTH_KEY = 'dmA1SIj5F9L0vRX1u2fkLaM9Rt7osgiHB7ywREaRiaNMry2NlAHQlhFTJYqkkGv4';
 
@@ -23,15 +23,20 @@ export async function GET(request: Request) {
 
         const data = await r.json();
 
-        // data.message === 'payment_successful'
-        // data.auth_key === BANKING_AUTH_KEY (Wait, the data might not return auth_key in the new API)
-        // just check if status is success and we have an orderId
-        
         const isSuccess = ['success', 'paid', 'completed', 'approved', '1', 'payment_successful'].includes(String(data.status || data.message || data.success).toLowerCase());
-        const orderId = data.query?.orderId || data.orderId;
+        
+        let orderId = data.query?.orderId || data.orderId;
+
+        // If orderId isn't returned by the gateway, lookup by token!
+        if (!orderId) {
+            const orderRecord = await getOrderByGatewayToken(token);
+            if (orderRecord) {
+                orderId = orderRecord.id;
+            }
+        }
 
         if (!orderId) {
-            console.error('Banking Webhook: No orderId returned from verification', data);
+            console.error('Banking Webhook: No orderId returned from verification and not found in DB by token', data);
             return NextResponse.redirect(new URL('/orders?payment=error_no_order', request.url));
         }
 

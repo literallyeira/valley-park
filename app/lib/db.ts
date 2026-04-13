@@ -58,6 +58,14 @@ export const updateOrderStatus = async (id: string | number, status: string, gat
 };
 
 // Site config (nav, banners)
+export const getOrderByGatewayToken = async (token: string) => {
+    const { data, error } = await supabase.from('orders').select('*').eq('gateway_token', token).single();
+    if (error) {
+        console.error('Error fetching order by token:', error);
+        return null;
+    }
+    return data;
+};
 export const getSiteConfig = async (key: string) => {
     const { data, error } = await supabase.from('site_config').select('value').eq('key', key).single();
     if (error) {
