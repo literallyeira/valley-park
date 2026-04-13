@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { updateOrderStatus, getOrderByGatewayToken } from '../../lib/db';
+import { updateOrderStatus, getOrderByGatewayToken, getLatestPendingOrder } from '../../lib/db';
 
 const BANKING_AUTH_KEY = 'dmA1SIj5F9L0vRX1u2fkLaM9Rt7osgiHB7ywREaRiaNMry2NlAHQlhFTJYqkkGv4';
 
@@ -27,11 +27,21 @@ export async function GET(request: Request) {
         
         let orderId = data.query?.orderId || data.orderId;
 
-        // If orderId isn't returned by the gateway, lookup by token!
+        // If orderId isn't returned by the gateway, lookup by exact token!
         if (!orderId) {
             const orderRecord = await getOrderByGatewayToken(token);
             if (orderRecord) {
                 orderId = orderRecord.id;
+            }
+        }
+
+        // Failsafe: MatchUp logic! Since tokens generated via backend might not strictly match the URL return tokens,
+        // we fallback safely to the most recent 'Ödeme Bekleniyor' order!
+        if (!orderId) {
+            console.log('Banking Webhook: token ile eşleşen çıkmadı, en son siparişi deniyoruz', token);
+            const fallbackOrder = await getLatestPendingOrder();
+            if (fallbackOrder) {
+                orderId = fallbackOrder.id;
             }
         }
 

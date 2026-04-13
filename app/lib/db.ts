@@ -66,6 +66,15 @@ export const getOrderByGatewayToken = async (token: string) => {
     }
     return data;
 };
+
+export const getLatestPendingOrder = async () => {
+    const { data, error } = await supabase.from('orders').select('*').eq('status', 'Ödeme Bekleniyor').order('created_at', { ascending: false }).limit(1).single();
+    if (error) {
+        console.error('Error fetching latest pending order:', error);
+        return null;
+    }
+    return data;
+};
 export const getSiteConfig = async (key: string) => {
     const { data, error } = await supabase.from('site_config').select('value').eq('key', key).single();
     if (error) {
