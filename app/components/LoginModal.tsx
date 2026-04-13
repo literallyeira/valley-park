@@ -7,7 +7,7 @@ interface LoginModalProps {
 
 export default function LoginModal({ onLogin, onClose }: LoginModalProps) {
     const handleGTAWLogin = () => {
-        const clientId = '55';
+        const clientId = '60';
         const redirectUri = encodeURIComponent('https://valley-park.business/api/auth');
         const oauthUrl = `https://ucp-tr.gta.world/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
         window.location.href = oauthUrl;
