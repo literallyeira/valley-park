@@ -44,14 +44,9 @@ const Footer = () => {
                     </div>
                 </div>
 
-                {/* Right Side: Copyright & Powered By */}
+                {/* Right Side: Copyright */}
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-gray-600">
                     <p>© 2026 Valley Park Concept Store</p>
-                    <div className="hidden md:block w-1 h-1 bg-gray-800 rounded-full"></div>
-                    <p>
-                        <span>powered by </span>
-                        <span className="text-white font-medium" style={{ textShadow: '0 0 5px rgba(255,255,255,0.3), 0 0 10px rgba(255,255,255,0.1)' }}>eira</span>
-                    </p>
                 </div>
             </div>
         </footer>
