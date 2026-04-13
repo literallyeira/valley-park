@@ -90,7 +90,7 @@ export default function CartModal({ items, products, user, onLoginRequest, onClo
     };
 
     return (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-end z-50 animate-fade-in" onClick={onClose}>
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-end z-50 animate-fade-in">
             <div className="bg-black w-full max-w-md h-full border-l border-white/10 flex flex-col" onClick={e => e.stopPropagation()}>
                 <div className="p-8 border-b border-white/10 flex items-center justify-between">
                     <h2 className="text-2xl font-black uppercase tracking-tighter">Sepetiniz</h2>
