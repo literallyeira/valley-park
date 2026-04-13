@@ -28,12 +28,47 @@ export async function POST(request: Request) {
         // 1. Create the order in pending state first
         const newOrder = await createOrder({ ...data, status: 'Ödeme Bekleniyor' });
 
-        // 2. Generate traditional banking gateway array link
-        // This is done via Browser instead of Backend Fetch to naturally bypass the Cloudflare JavaScript Challenge (WAF)
-        // Ensure returning URL has the orderId query param to act as proper linkage!
-        const returnUrl = `https://valley-park.business/api/banking?orderId=${newOrder.id}`;
+        // 2. Generate banking gateway token
+        // Use carefully mapped browser-mimicking headers to bypass Cloudflare
+        const generateUrl = `${GATEWAY_BASE}/gateway_token/generateToken?price=${Math.round(amount)}&type=0`;
+
+        let token: string = '';
+        try {
+            const tokenRes = await fetch(generateUrl, {
+                method: 'GET',
+                headers: { 
+                    'Authorization': `Bearer ${BANKING_AUTH_KEY}`,
+                    'Accept': 'application/json',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                },
+                cache: 'no-store'
+            });
+
+            if (!tokenRes.ok) {
+                const errText = await tokenRes.text();
+                throw new Error(`Cloudflare/API Hatası (HTTP ${tokenRes.status}). ${errText.slice(0, 100)}`);
+            }
+
+            const rawToken = await tokenRes.text();
+            try {
+                const parsed = JSON.parse(rawToken);
+                token = typeof parsed === 'string' ? parsed : (parsed?.token || parsed?.data || String(parsed));
+            } catch {
+                token = rawToken.replace(/^"|"$/g, '').trim();
+            }
+        } catch (error: any) {
+            console.error('Banking Token Error:', error.message);
+            return NextResponse.json({ ...newOrder, error: error.message });
+        }
+
+        if (!token) {
+            return NextResponse.json({ ...newOrder, error: 'Token alınamadı. API geçersiz.' });
+        }
+
+        // 3. Save token to order for webhook matching
+        await updateOrderStatus(newOrder.id, 'Ödeme Bekleniyor', token);
         
-        const redirectUrl = `${GATEWAY_BASE}/gateway?auth_key=${encodeURIComponent(BANKING_AUTH_KEY)}&type=0&price=${Math.round(amount)}&return_url=${encodeURIComponent(returnUrl)}`;
+        const redirectUrl = `${GATEWAY_BASE}/gateway/${encodeURIComponent(token)}`;
 
         return NextResponse.json({
             ...newOrder,
