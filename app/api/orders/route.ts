@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         // 3. Save token to order for webhook matching
         await updateOrderStatus(newOrder.id, 'Ödeme Bekleniyor', token);
 
-        const redirectUrl = `${GATEWAY_BASE}/gateway/${encodeURIComponent(token)}?return_url=${encodeURIComponent('https://valley-park.business/api/banking')}`;
+        const redirectUrl = `${GATEWAY_BASE}/gateway/${encodeURIComponent(token)}`;
 
         return NextResponse.json({
             ...newOrder,
