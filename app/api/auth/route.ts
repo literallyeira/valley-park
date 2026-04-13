@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const CLIENT_ID = '55';
-const CLIENT_SECRET = 'SvirJd6IxWkhRKbuu6MgbjyqjdyHbpwdhcACspIH';
+const CLIENT_SECRET = 'OiDXNUfcCvmrDPJ3XzmoOs9gNaupogH2yBG0qTSg';
 const REDIRECT_URI = 'https://valley-park.business/api/auth';
 
 const CLOUDFLARE_SAFE_HEADERS = {
