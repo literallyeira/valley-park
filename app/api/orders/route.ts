@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
-import { getOrders, createOrder, updateOrderStatus } from '../../lib/db';
+import { getOrders, createOrder, updateOrderStatus, deleteOrder } from '../../lib/db';
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -95,4 +95,14 @@ export async function PUT(request: Request) {
     }
     // If null, order might not exist or error.
     return NextResponse.json({ status: 'Updated' });
+}
+
+export async function DELETE(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+
+    await deleteOrder(id);
+    return NextResponse.json({ success: true });
 }

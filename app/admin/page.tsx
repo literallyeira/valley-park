@@ -22,6 +22,8 @@ export default function AdminPage() {
     const [orders, setOrders] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    const [ordersPage, setOrdersPage] = useState(1);
+    const [orderFilter, setOrderFilter] = useState('all');
     const [adminUser, setAdminUser] = useState('');
     const [adminPass, setAdminPass] = useState('');
 
@@ -141,6 +143,12 @@ export default function AdminPage() {
         fetchData();
     };
 
+    const handleDeleteOrder = async (id: number) => {
+        if (!confirm('Bu siparişi kalıcı olarak silmek istediğinize emin misiniz?')) return;
+        await fetch(`/api/orders?id=${id}`, { method: 'DELETE' });
+        fetchData();
+    };
+
     const handleSaveNav = async () => {
         const res = await fetch('/api/site-config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'nav_items', value: navItems }) });
         if (res.ok) { toast('Navigasyon güncellendi'); }
@@ -240,39 +248,98 @@ export default function AdminPage() {
                 </div>
             </header>
 
-            {activeTab === 'orders' && (
-                <div className="space-y-6">
-                    {orders.map((order) => (
-                        <div key={order.id} className="bg-neutral-900 border border-white/10 p-6 flex flex-col md:flex-row justify-between gap-6">
-                            <div>
-                                <div className="flex items-center gap-4 mb-2">
-                                    <span className="text-[var(--primary)] font-bold">#{order.id}</span>
-                                    <span className="text-xs text-gray-400 bg-black px-2 py-1 rounded">{new Date(order.created_at || order.createdAt).toLocaleString('tr-TR')}</span>
-                                </div>
-                                <h3 className="font-bold text-lg mb-1">{order.ucp_name || order.ucpName} <span className="text-gray-500 text-sm">({order.username})</span></h3>
-                                <div className="text-gray-400 text-sm">
-                                    {(order.items || []).map((i: any) => i.name).join(', ')}
-                                </div>
-                                <div className="mt-2 font-mono text-xl font-bold">${order.total}</div>
-                            </div>
-                            <div className="flex flex-col gap-2 min-w-[200px]">
-                                <label className="text-xs uppercase font-bold text-gray-500">Sipariş Durumu</label>
-                                <select
-                                    value={order.status}
-                                    onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
-                                    className="bg-black border border-white/20 p-2 text-white font-bold rounded focus:border-white focus:outline-none"
+            {activeTab === 'orders' && (() => {
+                const filteredOrders = orders.filter(o => orderFilter === 'all' ? true : o.status === orderFilter);
+                const ORDERS_PER_PAGE = 10;
+                const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ORDERS_PER_PAGE));
+                const paginatedOrders = filteredOrders.slice((ordersPage - 1) * ORDERS_PER_PAGE, ordersPage * ORDERS_PER_PAGE);
+
+                return (
+                    <div className="space-y-6">
+                        <div className="flex flex-col sm:flex-row justify-between items-center bg-neutral-900 border border-white/10 p-4 gap-4">
+                            <h2 className="font-bold uppercase text-xl">Sipariş Yönetimi</h2>
+                            <div className="flex items-center gap-3">
+                                <label className="text-sm font-bold text-gray-400 uppercase">Filtrele:</label>
+                                <select 
+                                    value={orderFilter}
+                                    onChange={(e) => { setOrderFilter(e.target.value); setOrdersPage(1); }}
+                                    className="bg-black border border-white/20 p-2 text-white text-sm focus:outline-none focus:border-white"
                                 >
-                                    <option value="Hazırlanıyor">Hazırlanıyor</option>
+                                    <option value="all">Tümü</option>
+                                    <option value="Ödeme Bekleniyor">Ödeme Bekleniyor</option>
+                                    <option value="Hazırlanıyor">Hazırlanıyor (Ödendi)</option>
                                     <option value="Kargolandı">Kargolandı</option>
                                     <option value="Teslim Edildi">Teslim Edildi</option>
                                     <option value="İptal Edildi">İptal Edildi</option>
                                 </select>
                             </div>
                         </div>
-                    ))}
-                    {orders.length === 0 && <p className="text-gray-500">Henüz sipariş yok.</p>}
-                </div>
-            )}
+
+                        {paginatedOrders.map((order) => (
+                            <div key={order.id} className="bg-neutral-900 border border-white/10 p-6 flex flex-col md:flex-row justify-between gap-6 relative">
+                                <div className="absolute top-4 right-4 print:hidden">
+                                    <button onClick={() => handleDeleteOrder(order.id)} className="text-red-500 hover:text-white transition-colors" title="Siparişi Sil">
+                                        <i className="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div className="pr-8">
+                                    <div className="flex items-center gap-4 mb-2">
+                                        <span className="text-[var(--primary)] font-bold">#{order.id}</span>
+                                        <span className="text-xs text-gray-400 bg-black px-2 py-1 rounded">{new Date(order.created_at || order.createdAt).toLocaleString('tr-TR')}</span>
+                                        <span className={`text-xs px-2 py-1 uppercase font-bold rounded ${
+                                            order.status === 'Ödeme Bekleniyor' ? 'bg-yellow-500/20 text-yellow-500' :
+                                            order.status === 'İptal Edildi' ? 'bg-red-500/20 text-red-500' :
+                                            'bg-green-500/20 text-green-500'
+                                        }`}>
+                                            {order.status === 'Ödeme Bekleniyor' ? 'ÖDENMEDİ' : order.status === 'İptal Edildi' ? 'İPTAL' : 'ÖDENDİ'}
+                                        </span>
+                                    </div>
+                                    <h3 className="font-bold text-lg mb-1">{order.ucp_name || order.ucpName} <span className="text-gray-500 text-sm">({order.username})</span></h3>
+                                    <div className="text-gray-400 text-sm mb-2">
+                                        {(order.items || []).map((i: any) => i.name).join(', ')}
+                                    </div>
+                                    <div className="mt-2 font-mono text-xl font-bold">${order.total}</div>
+                                </div>
+                                <div className="flex flex-col gap-2 min-w-[200px]">
+                                    <label className="text-xs uppercase font-bold text-gray-500">Sipariş Durumu</label>
+                                    <select
+                                        value={order.status}
+                                        onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
+                                        className="bg-black border border-white/20 p-2 text-white font-bold rounded focus:border-white focus:outline-none"
+                                    >
+                                        <option value="Ödeme Bekleniyor">Ödeme Bekleniyor</option>
+                                        <option value="Hazırlanıyor">Hazırlanıyor</option>
+                                        <option value="Kargolandı">Kargolandı</option>
+                                        <option value="Teslim Edildi">Teslim Edildi</option>
+                                        <option value="İptal Edildi">İptal Edildi</option>
+                                    </select>
+                                </div>
+                            </div>
+                        ))}
+                        {filteredOrders.length === 0 && <p className="text-gray-500 text-center py-8">Bu filtreye uygun sipariş bulunamadı.</p>}
+                        
+                        {totalPages > 1 && (
+                            <div className="flex justify-center gap-2 mt-8">
+                                <button 
+                                    onClick={() => setOrdersPage(p => Math.max(1, p - 1))}
+                                    disabled={ordersPage === 1}
+                                    className="px-4 py-2 border border-white/20 disabled:opacity-50 hover:bg-white/10"
+                                >
+                                    <i className="fa-solid fa-chevron-left"></i>
+                                </button>
+                                <span className="px-4 py-2 bg-neutral-900 border border-white/20">{ordersPage} / {totalPages}</span>
+                                <button 
+                                    onClick={() => setOrdersPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={ordersPage === totalPages}
+                                    className="px-4 py-2 border border-white/20 disabled:opacity-50 hover:bg-white/10"
+                                >
+                                    <i className="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
 
             {activeTab === 'products' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

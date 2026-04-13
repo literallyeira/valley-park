@@ -57,6 +57,11 @@ export const updateOrderStatus = async (id: string | number, status: string, gat
     return data;
 };
 
+export const deleteOrder = async (id: string | number) => {
+    const { error } = await supabase.from('orders').delete().eq('id', id);
+    if (error) console.error('Error deleting order:', error);
+};
+
 // Site config (nav, banners)
 export const getOrderByGatewayToken = async (token: string) => {
     const { data, error } = await supabase.from('orders').select('*').eq('gateway_token', token).single();
