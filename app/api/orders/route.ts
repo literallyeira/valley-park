@@ -34,31 +34,29 @@ export async function POST(request: Request) {
 
         console.log('Fetching banking token via axios from:', generateUrl);
 
-        const axiosHeaders = {
-            'Authorization': `Bearer ${BANKING_AUTH_KEY}`,
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-            'Accept': 'application/json, text/plain, */*',
-            'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Origin': 'https://valley-park.business',
-            'Referer': 'https://valley-park.business/'
-        };
-
         let token: string = '';
         try {
-            const tokenResponse = await axios.get(generateUrl, {
-                headers: axiosHeaders,
-                timeout: 10000
+            const tokenRes = await fetch(generateUrl, {
+                method: 'GET',
+                headers: { Authorization: `Bearer ${BANKING_AUTH_KEY}` },
+                cache: 'no-store'
             });
 
-            const rawToken = tokenResponse.data;
-            if (typeof rawToken === 'string') {
+            if (!tokenRes.ok) {
+                const errText = await tokenRes.text();
+                throw new Error(`Gateway Error ${tokenRes.status}: ${errText}`);
+            }
+
+            const rawToken = await tokenRes.text();
+            try {
+                const parsed = JSON.parse(rawToken);
+                token = typeof parsed === 'string' ? parsed : (parsed?.token || parsed?.data || String(parsed));
+            } catch {
                 token = rawToken.replace(/^"|"$/g, '').trim();
-            } else {
-                token = rawToken?.token || rawToken?.data || String(rawToken);
             }
         } catch (error: any) {
-            console.error('Banking Token Error:', error.response?.status, error.response?.data || error.message);
-            return NextResponse.json({ ...newOrder, error: `Gateway Error (${error.response?.status || 'Network'})` });
+            console.error('Banking Token Error:', error.message);
+            return NextResponse.json({ ...newOrder, error: error.message });
         }
 
         if (!token) {
