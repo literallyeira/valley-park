@@ -280,16 +280,22 @@ export default function AdminPage() {
                         </div>
 
                         {paginatedOrders.map((order) => (
-                            <div key={order.id} className="bg-neutral-900 border border-white/10 p-6 flex flex-col md:flex-row justify-between gap-6 relative">
+                            <div key={order.id} className="bg-neutral-900 border border-white/10 p-6 relative">
                                 <div className="absolute top-4 right-4 print:hidden">
                                     <button onClick={() => handleDeleteOrder(order.id)} className="text-red-500 hover:text-white transition-colors" title="Siparişi Sil">
                                         <i className="fa-solid fa-trash"></i>
                                     </button>
                                 </div>
-                                <div className="pr-8">
-                                    <div className="flex items-center gap-4 mb-2">
+                                <div className="pr-8 border-b border-white/10 pb-4 mb-4">
+                                    <div className="flex items-center gap-4 mb-2 flex-wrap">
                                         <span className="text-[var(--primary)] font-bold">#{order.id}</span>
-                                        <span className="text-xs text-gray-400 bg-black px-2 py-1 rounded">{new Date(order.created_at || order.createdAt).toLocaleString('tr-TR')}</span>
+                                        <span className="text-xs text-gray-400 bg-black px-2 py-1 rounded">
+                                            {(() => {
+                                                const rawDate = order.created_at || order.createdAt;
+                                                const parsedDate = rawDate ? new Date(rawDate) : null;
+                                                return parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate.toLocaleString('tr-TR') : '-';
+                                            })()}
+                                        </span>
                                         <span className={`text-xs px-2 py-1 uppercase font-bold rounded ${
                                             order.status === 'Ödeme Bekleniyor' ? 'bg-yellow-500/20 text-yellow-500' :
                                             order.status === 'İptal Edildi' ? 'bg-red-500/20 text-red-500' :
@@ -299,24 +305,54 @@ export default function AdminPage() {
                                         </span>
                                     </div>
                                     <h3 className="font-bold text-lg mb-1">{order.ucp_name || order.ucpName} <span className="text-gray-500 text-sm">({order.username})</span></h3>
-                                    <div className="text-gray-400 text-sm mb-2">
-                                        {(order.items || []).map((i: any) => i.name).join(', ')}
-                                    </div>
                                     <div className="mt-2 font-mono text-xl font-bold">${order.total}</div>
                                 </div>
-                                <div className="flex flex-col gap-2 min-w-[200px]">
-                                    <label className="text-xs uppercase font-bold text-gray-500">Sipariş Durumu</label>
-                                    <select
-                                        value={order.status}
-                                        onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
-                                        className="bg-black border border-white/20 p-2 text-white font-bold rounded focus:border-white focus:outline-none"
-                                    >
-                                        <option value="Ödeme Bekleniyor">Ödeme Bekleniyor</option>
-                                        <option value="Hazırlanıyor">Hazırlanıyor</option>
-                                        <option value="Kargolandı">Kargolandı</option>
-                                        <option value="Teslim Edildi">Teslim Edildi</option>
-                                        <option value="İptal Edildi">İptal Edildi</option>
-                                    </select>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    <div className="lg:col-span-2">
+                                        <h4 className="text-xs uppercase font-bold text-gray-500 mb-3">Ürünler</h4>
+                                        <div className="space-y-3">
+                                            {(order.items || []).map((item: any, idx: number) => (
+                                                <div key={idx} className="flex items-center gap-3 border border-white/10 p-2 bg-black/20">
+                                                    {item.image ? (
+                                                        <img src={item.image} alt={item.name} className="w-12 h-12 object-cover" />
+                                                    ) : (
+                                                        <div className="w-12 h-12 bg-neutral-800" />
+                                                    )}
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-bold text-sm truncate">{item.name}</p>
+                                                        <p className="text-xs text-gray-400">${item.price}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {(order.items || []).length === 0 && <p className="text-gray-500 text-sm">Ürün bilgisi yok.</p>}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex flex-col gap-2 min-w-[200px]">
+                                            <label className="text-xs uppercase font-bold text-gray-500">Sipariş Durumu</label>
+                                            <select
+                                                value={order.status}
+                                                onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
+                                                className="bg-black border border-white/20 p-2 text-white font-bold rounded focus:border-white focus:outline-none"
+                                            >
+                                                <option value="Ödeme Bekleniyor">Ödeme Bekleniyor</option>
+                                                <option value="Hazırlanıyor">Hazırlanıyor</option>
+                                                <option value="Kargolandı">Kargolandı</option>
+                                                <option value="Teslim Edildi">Teslim Edildi</option>
+                                                <option value="İptal Edildi">İptal Edildi</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="border border-white/10 bg-black/20 p-3 space-y-2 text-sm">
+                                            <p><span className="text-gray-500">Ödeme:</span> {order.payment_method || order.paymentMethod || '-'}</p>
+                                            <p><span className="text-gray-500">Karakter:</span> {order.sender_character || order.senderCharacter || '-'}</p>
+                                            <p><span className="text-gray-500">Alıcı:</span> {order.full_name || order.fullName || '-'}</p>
+                                            <p><span className="text-gray-500">Telefon:</span> {order.phone || '-'}</p>
+                                            <p><span className="text-gray-500">Adres:</span> {order.address || '-'}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         ))}
